@@ -454,7 +454,7 @@ export default function Index() {
               <div className="space-y-6">
                 {[
                   { icon: "Phone", label: "Телефон", value: "+7 (961) 350-95-25" },
-                  { icon: "Mail", label: "Email", value: "info@forma-mebel.ru" },
+                  { icon: "Mail", label: "Email", value: "info.forma-mebel@mail.ru" },
                   { icon: "Clock", label: "Режим работы", value: "Пн–Пт: 9:00 — 19:00, Сб: 10:00 — 16:00" },
                 ].map((c) => (
                   <div key={c.label} className="flex gap-4 items-start">
