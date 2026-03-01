@@ -124,10 +124,10 @@ export default function Index() {
             className="flex items-center gap-3"
           >
             <div className="w-8 h-8 bg-[hsl(var(--charcoal))] flex items-center justify-center">
-              <span className="text-white font-cormorant font-bold text-sm">F</span>
+              <span className="text-white font-cormorant font-bold text-sm">Ф</span>
             </div>
             <span className="font-cormorant font-semibold text-xl tracking-widest text-[hsl(var(--charcoal))] uppercase">
-              Forma
+              Форма
             </span>
           </button>
 
@@ -391,7 +391,7 @@ export default function Index() {
                 Мебель, которой <em className="italic text-[hsl(var(--gold))]">доверяют</em>
               </h2>
               <p className="font-ibm text-white/60 text-sm leading-relaxed mb-6">
-                FORMA основана в 2019 году. За эти годы мы зарекомендовали себя как надёжный поставщик качественной мебели по всей России.
+                ФОРМА основана в 2019 году. За эти годы мы зарекомендовали себя как надёжный поставщик качественной мебели по всей России.
               </p>
               <p className="font-ibm text-white/60 text-sm leading-relaxed mb-10">
                 Каждое изделие изготавливается на нашем производстве в Подмосковье из сертифицированного сырья. Мы не работаем с перекупщиками — только прямые поставки и собственный контроль качества.
@@ -520,9 +520,9 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-white/10 flex items-center justify-center">
-              <span className="text-white font-cormorant font-bold text-xs">F</span>
+              <span className="text-white font-cormorant font-bold text-xs">Ф</span>
             </div>
-            <span className="font-cormorant text-white tracking-widest text-lg uppercase">Forma</span>
+            <span className="font-cormorant text-white tracking-widest text-lg uppercase">Форма</span>
           </div>
 
           <nav className="flex gap-6">
@@ -538,7 +538,7 @@ export default function Index() {
           </nav>
 
           <p className="font-ibm text-[10px] text-white/30 tracking-wider">
-            © 2024 FORMA. Все права защищены.
+            © 2024 ФОРМА. Все права защищены.
           </p>
         </div>
       </footer>
