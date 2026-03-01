@@ -197,7 +197,7 @@ export default function Index() {
               className="font-ibm text-white/70 text-sm leading-relaxed mb-10 max-w-md animate-fade-in-up delay-200"
               style={{ animationFillMode: "forwards" }}
             >
-              Более 15 лет поставляем качественную мебель для офисов, переговорных залов и представительских кабинетов по всей России.
+              Более 5 лет поставляем качественную мебель для офисов, переговорных залов и представительских кабинетов по всей России.
             </p>
             <div
               className="flex flex-wrap gap-4 animate-fade-in-up delay-300"
