@@ -391,7 +391,7 @@ export default function Index() {
                 Мебель, которой <em className="italic text-[hsl(var(--gold))]">доверяют</em>
               </h2>
               <p className="font-ibm text-white/60 text-sm leading-relaxed mb-6">
-                FORMA основана в 2009 году. За это время мы оснастили более 3000 офисов, переговорных комнат и кабинетов руководителей по всей России.
+                FORMA основана в 2019 году. За это время мы оснастили более 1000 офисов, переговорных комнат и кабинетов руководителей по всей России.
               </p>
               <p className="font-ibm text-white/60 text-sm leading-relaxed mb-10">
                 Каждое изделие изготавливается на нашем производстве в Подмосковье из сертифицированного сырья. Мы не работаем с перекупщиками — только прямые поставки и собственный контроль качества.
@@ -430,7 +430,7 @@ export default function Index() {
                 />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-[hsl(var(--gold))] p-6 hidden md:block">
-                <div className="font-cormorant text-4xl text-white font-bold">15+</div>
+                <div className="font-cormorant text-4xl text-white font-bold">5+</div>
                 <div className="font-ibm text-xs text-white/80 tracking-wider uppercase mt-1">Лет опыта</div>
               </div>
             </div>
