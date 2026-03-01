@@ -219,8 +219,8 @@ export default function Index() {
         <div className="absolute bottom-0 left-0 right-0 bg-white/10 backdrop-blur-sm border-t border-white/10">
           <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-3 gap-6">
             {[
-              { num: "15+", label: "Лет на рынке" },
-              { num: "3 200+", label: "Довольных клиентов" },
+              { num: "5", label: "Лет на рынке" },
+              { num: "1 000+", label: "Довольных клиентов" },
               { num: "500+", label: "Позиций в каталоге" },
             ].map((s) => (
               <div key={s.label} className="text-center">
