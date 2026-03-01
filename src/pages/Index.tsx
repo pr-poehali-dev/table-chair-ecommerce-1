@@ -144,8 +144,8 @@ export default function Index() {
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
-            <a href="tel:+74951234567" className="font-ibm text-xs tracking-wider text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))] transition-colors">
-              +7 (495) 123-45-67
+            <a href="tel:+79613509525" className="font-ibm text-xs tracking-wider text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))] transition-colors">
+              +7 (961) 350-95-25
             </a>
           </div>
 
@@ -453,7 +453,7 @@ export default function Index() {
 
               <div className="space-y-6">
                 {[
-                  { icon: "Phone", label: "Телефон", value: "+7 (495) 123-45-67" },
+                  { icon: "Phone", label: "Телефон", value: "+7 (961) 350-95-25" },
                   { icon: "Mail", label: "Email", value: "info@forma-mebel.ru" },
                   { icon: "MapPin", label: "Адрес", value: "Москва, ул. Большая Якиманка, 24" },
                   { icon: "Clock", label: "Режим работы", value: "Пн–Пт: 9:00 — 19:00, Сб: 10:00 — 16:00" },
