@@ -124,7 +124,7 @@ export default function Index() {
             className="flex items-center gap-3"
           >
             <div className="w-8 h-8 bg-[hsl(var(--charcoal))] flex items-center justify-center">
-              <span className="text-white font-cormorant font-bold text-sm">Ф</span>
+              <span className="text-white font-cormorant font-bold text-sm">М</span>
             </div>
             <span className="font-cormorant font-semibold text-xl tracking-widest text-[hsl(var(--charcoal))] uppercase">
               Мир Столов и Стульев
@@ -520,7 +520,7 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-white/10 flex items-center justify-center">
-              <span className="text-white font-cormorant font-bold text-xs">Ф</span>
+              <span className="text-white font-cormorant font-bold text-xs">М</span>
             </div>
             <span className="font-cormorant text-white tracking-widest text-lg uppercase">Мир Столов и Стульев</span>
           </div>
