@@ -127,7 +127,7 @@ export default function Index() {
               <span className="text-white font-cormorant font-bold text-sm">Ф</span>
             </div>
             <span className="font-cormorant font-semibold text-xl tracking-widest text-[hsl(var(--charcoal))] uppercase">
-              Форма
+              Мир Столов и Стульев
             </span>
           </button>
 
@@ -522,7 +522,7 @@ export default function Index() {
             <div className="w-7 h-7 bg-white/10 flex items-center justify-center">
               <span className="text-white font-cormorant font-bold text-xs">Ф</span>
             </div>
-            <span className="font-cormorant text-white tracking-widest text-lg uppercase">Форма</span>
+            <span className="font-cormorant text-white tracking-widest text-lg uppercase">Мир Столов и Стульев</span>
           </div>
 
           <nav className="flex gap-6">
@@ -538,7 +538,7 @@ export default function Index() {
           </nav>
 
           <p className="font-ibm text-[10px] text-white/30 tracking-wider">
-            © 2024 ФОРМА. Все права защищены.
+            © 2024 МИР СТОЛОВ И СТУЛЬЕВ. Все права защищены.
           </p>
         </div>
       </footer>
