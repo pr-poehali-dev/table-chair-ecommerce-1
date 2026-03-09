@@ -1,79 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
+
+const CATALOG_URL = "https://functions.poehali.dev/ad4cf3d6-daa4-46d3-a12e-7450cde2ed86";
+const SUBMIT_URL = "https://functions.poehali.dev/d44ce627-6827-4dbe-a081-0c0cc8d835e4";
 
 const HERO_IMG = "https://cdn.poehali.dev/projects/be1b219e-f7ec-4829-9956-6c1dc29e759f/files/18b4fdba-8757-4266-a03c-922df7340420.jpg";
 const DESK_IMG = "https://cdn.poehali.dev/projects/be1b219e-f7ec-4829-9956-6c1dc29e759f/files/9521eb3a-d91f-439c-869e-43ea6fe97b29.jpg";
-const CHAIR_IMG = "https://cdn.poehali.dev/projects/be1b219e-f7ec-4829-9956-6c1dc29e759f/files/4e1ee7f5-1321-4b5f-b8b9-80868fdd8a1a.jpg";
-const TABLE_SET_IMG = "https://cdn.poehali.dev/projects/be1b219e-f7ec-4829-9956-6c1dc29e759f/files/606016e5-59ef-4be6-9c4c-20c8b993d56d.jpg";
 
 const NAV_LINKS = [
   { label: "Главная", id: "hero" },
   { label: "Каталог", id: "catalog" },
   { label: "О компании", id: "about" },
   { label: "Контакты", id: "contacts" },
-];
-
-const PRODUCTS = [
-  {
-    id: 1,
-    name: "Стол Директор Pro",
-    category: "Столы",
-    material: "Дуб",
-    style: "Классика",
-    price: 89000,
-    image: DESK_IMG,
-    tag: "Хит продаж",
-  },
-  {
-    id: 2,
-    name: "Кресло Престиж",
-    category: "Стулья",
-    material: "Кожа",
-    style: "Классика",
-    price: 47500,
-    image: CHAIR_IMG,
-    tag: "Новинка",
-  },
-  {
-    id: 3,
-    name: "Обеденная группа Nord",
-    category: "Столы",
-    material: "Массив",
-    style: "Скандинавский",
-    price: 134000,
-    image: TABLE_SET_IMG,
-    tag: null,
-  },
-  {
-    id: 4,
-    name: "Стол переговорный Elite",
-    category: "Столы",
-    material: "Дуб",
-    style: "Современный",
-    price: 215000,
-    image: DESK_IMG,
-    tag: "Премиум",
-  },
-  {
-    id: 5,
-    name: "Стул Мадрид",
-    category: "Стулья",
-    material: "Ткань",
-    style: "Современный",
-    price: 18900,
-    image: CHAIR_IMG,
-    tag: null,
-  },
-  {
-    id: 6,
-    name: "Стол рабочий Artisan",
-    category: "Столы",
-    material: "Массив",
-    style: "Скандинавский",
-    price: 62000,
-    image: TABLE_SET_IMG,
-    tag: null,
-  },
 ];
 
 const CATEGORIES = ["Все", "Столы", "Стулья"];
@@ -87,6 +25,21 @@ const PRICE_RANGES = [
   { label: "От 200 000 ₽", min: 200000, max: Infinity },
 ];
 
+interface Product {
+  id: number;
+  name: string;
+  category: string;
+  material: string;
+  style: string;
+  price: number;
+  image: string;
+  tag: string | null;
+}
+
+interface CartItem extends Product {
+  qty: number;
+}
+
 const scrollTo = (id: string) => {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 };
@@ -98,8 +51,27 @@ export default function Index() {
   const [material, setMaterial] = useState("Все");
   const [style, setStyle] = useState("Все");
   const [priceIdx, setPriceIdx] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(true);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [orderProduct, setOrderProduct] = useState<Product | null>(null);
 
-  const filtered = PRODUCTS.filter((p) => {
+  const [formName, setFormName] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formComment, setFormComment] = useState("");
+  const [formSending, setFormSending] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    fetch(CATALOG_URL)
+      .then((r) => r.json())
+      .then((d) => setProducts(d.products || []))
+      .finally(() => setLoadingCatalog(false));
+  }, []);
+
+  const filtered = products.filter((p) => {
     const catOk = category === "Все" || p.category === category;
     const matOk = material === "Все" || p.material === material;
     const styOk = style === "Все" || p.style === style;
@@ -114,15 +86,73 @@ export default function Index() {
     scrollTo(id);
   };
 
+  const addToCart = (product: Product) => {
+    setCart((prev) => {
+      const existing = prev.find((i) => i.id === product.id);
+      if (existing) return prev.map((i) => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+      return [...prev, { ...product, qty: 1 }];
+    });
+    setCartOpen(true);
+  };
+
+  const removeFromCart = (id: number) => {
+    setCart((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const changeQty = (id: number, delta: number) => {
+    setCart((prev) => prev.map((i) => i.id === id ? { ...i, qty: Math.max(1, i.qty + delta) } : i));
+  };
+
+  const cartTotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
+
+  const openOrderModal = (product: Product) => {
+    setOrderProduct(product);
+  };
+
+  const sendOrder = async (cartItems: CartItem[], comment?: string) => {
+    if (!formName.trim() || !formPhone.trim()) {
+      setFormError("Пожалуйста, заполните имя и телефон");
+      return;
+    }
+    setFormSending(true);
+    setFormError("");
+    try {
+      const res = await fetch(SUBMIT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formName,
+          phone: formPhone,
+          comment: comment || formComment,
+          cart: cartItems.map((i) => ({ name: i.name, price: i.price, qty: i.qty })),
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setFormSuccess(true);
+        setFormName("");
+        setFormPhone("");
+        setFormComment("");
+        setCart([]);
+        setCartOpen(false);
+        setOrderProduct(null);
+      } else {
+        setFormError("Ошибка при отправке. Попробуйте ещё раз.");
+      }
+    } catch {
+      setFormError("Ошибка сети. Попробуйте ещё раз.");
+    } finally {
+      setFormSending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* NAVBAR */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-          <button
-            onClick={() => handleNav("hero")}
-            className="flex items-center gap-3"
-          >
+          <button onClick={() => handleNav("hero")} className="flex items-center gap-3">
             <div className="w-8 h-8 bg-[hsl(var(--charcoal))] flex items-center justify-center">
               <span className="text-white font-cormorant font-bold text-sm">М</span>
             </div>
@@ -133,38 +163,37 @@ export default function Index() {
 
           <nav className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNav(link.id)}
-                className={`nav-link ${activeNav === link.id ? "active" : ""}`}
-              >
+              <button key={link.id} onClick={() => handleNav(link.id)} className={`nav-link ${activeNav === link.id ? "active" : ""}`}>
                 {link.label}
               </button>
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
-            <a href="tel:+79613509525" className="font-ibm text-xs tracking-wider text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))] transition-colors">
+          <div className="flex items-center gap-4">
+            <a href="tel:+79613509525" className="hidden md:block font-ibm text-xs tracking-wider text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))] transition-colors">
               +7 (961) 350-95-25
             </a>
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative p-2 hover:text-[hsl(var(--gold))] transition-colors"
+            >
+              <Icon name="ShoppingCart" size={20} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[hsl(var(--gold))] text-white text-[10px] font-ibm font-bold rounded-full flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </button>
+            <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Icon name={mobileMenuOpen ? "X" : "Menu"} size={22} />
+            </button>
           </div>
-
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <Icon name={mobileMenuOpen ? "X" : "Menu"} size={22} />
-          </button>
         </div>
 
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-border px-6 py-4 flex flex-col gap-4">
             {NAV_LINKS.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNav(link.id)}
-                className={`nav-link text-left ${activeNav === link.id ? "active" : ""}`}
-              >
+              <button key={link.id} onClick={() => handleNav(link.id)} className={`nav-link text-left ${activeNav === link.id ? "active" : ""}`}>
                 {link.label}
               </button>
             ))}
@@ -172,12 +201,159 @@ export default function Index() {
         )}
       </header>
 
+      {/* CART DRAWER */}
+      {cartOpen && (
+        <div className="fixed inset-0 z-[100]">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setCartOpen(false)} />
+          <div className="absolute top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+              <h2 className="font-cormorant text-2xl text-[hsl(var(--charcoal))]">Корзина</h2>
+              <button onClick={() => setCartOpen(false)}><Icon name="X" size={20} /></button>
+            </div>
+
+            {cart.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center gap-4 text-[hsl(var(--muted-foreground))]">
+                <Icon name="ShoppingCart" size={48} />
+                <p className="font-ibm text-sm">Корзина пуста</p>
+                <button className="gold-btn" onClick={() => { setCartOpen(false); scrollTo("catalog"); }}>
+                  Перейти в каталог
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex gap-4 border-b border-border pb-4">
+                      <img src={item.image} alt={item.name} className="w-20 h-20 object-cover flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-cormorant text-base font-semibold text-[hsl(var(--charcoal))] leading-tight mb-1">{item.name}</p>
+                        <p className="font-ibm text-sm text-[hsl(var(--charcoal))]">{item.price.toLocaleString("ru-RU")} ₽</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <button onClick={() => changeQty(item.id, -1)} className="w-7 h-7 border border-border flex items-center justify-center hover:border-[hsl(var(--charcoal))] transition-colors">
+                            <Icon name="Minus" size={12} />
+                          </button>
+                          <span className="font-ibm text-sm w-4 text-center">{item.qty}</span>
+                          <button onClick={() => changeQty(item.id, 1)} className="w-7 h-7 border border-border flex items-center justify-center hover:border-[hsl(var(--charcoal))] transition-colors">
+                            <Icon name="Plus" size={12} />
+                          </button>
+                          <button onClick={() => removeFromCart(item.id)} className="ml-auto text-[hsl(var(--muted-foreground))] hover:text-red-500 transition-colors">
+                            <Icon name="Trash2" size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="px-6 py-5 border-t border-border space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-ibm text-sm text-[hsl(var(--muted-foreground))]">Итого:</span>
+                    <span className="font-cormorant text-2xl font-semibold text-[hsl(var(--charcoal))]">{cartTotal.toLocaleString("ru-RU")} ₽</span>
+                  </div>
+
+                  {formSuccess ? (
+                    <div className="bg-green-50 border border-green-200 p-4 text-center">
+                      <Icon name="CheckCircle" size={24} className="mx-auto text-green-600 mb-2" />
+                      <p className="font-ibm text-sm text-green-700">Заявка отправлена! Мы свяжемся с вами в течение 30 минут.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        placeholder="Ваше имя *"
+                        value={formName}
+                        onChange={(e) => setFormName(e.target.value)}
+                        className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
+                      />
+                      <input
+                        type="tel"
+                        placeholder="Телефон *"
+                        value={formPhone}
+                        onChange={(e) => setFormPhone(e.target.value)}
+                        className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
+                      />
+                      {formError && <p className="font-ibm text-xs text-red-500">{formError}</p>}
+                      <button
+                        className="gold-btn w-full disabled:opacity-60"
+                        disabled={formSending}
+                        onClick={() => sendOrder(cart)}
+                      >
+                        {formSending ? "Отправляем..." : "Оформить заказ"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ORDER MODAL */}
+      {orderProduct && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setOrderProduct(null)} />
+          <div className="relative bg-white w-full max-w-md shadow-2xl p-8">
+            <button className="absolute top-4 right-4" onClick={() => setOrderProduct(null)}>
+              <Icon name="X" size={20} />
+            </button>
+            <h3 className="font-cormorant text-2xl text-[hsl(var(--charcoal))] mb-2">Заказать товар</h3>
+            <p className="font-ibm text-sm text-[hsl(var(--muted-foreground))] mb-6">{orderProduct.name} — {orderProduct.price.toLocaleString("ru-RU")} ₽</p>
+
+            {formSuccess ? (
+              <div className="bg-green-50 border border-green-200 p-6 text-center">
+                <Icon name="CheckCircle" size={32} className="mx-auto text-green-600 mb-3" />
+                <p className="font-ibm text-sm text-green-700">Заявка отправлена! Мы свяжемся с вами в течение 30 минут.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">Имя *</label>
+                  <input
+                    type="text"
+                    placeholder="Ваше имя"
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">Телефон *</label>
+                  <input
+                    type="tel"
+                    placeholder="+7 (___) ___-__-__"
+                    value={formPhone}
+                    onChange={(e) => setFormPhone(e.target.value)}
+                    className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">Комментарий</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Расскажите о вашем запросе..."
+                    value={formComment}
+                    onChange={(e) => setFormComment(e.target.value)}
+                    className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors resize-none"
+                  />
+                </div>
+                {formError && <p className="font-ibm text-xs text-red-500">{formError}</p>}
+                <button
+                  className="gold-btn w-full disabled:opacity-60"
+                  disabled={formSending}
+                  onClick={() => sendOrder([{ ...orderProduct, qty: 1 }])}
+                >
+                  {formSending ? "Отправляем..." : "Отправить заявку"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* HERO */}
       <section id="hero" className="relative min-h-screen flex items-center overflow-hidden pt-16">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${HERO_IMG})` }}
-        />
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${HERO_IMG})` }} />
         <div className="absolute inset-0 bg-[hsl(var(--charcoal))]/70" />
         <div className="hero-texture" />
 
@@ -186,23 +362,14 @@ export default function Index() {
             <p className="section-label mb-6 animate-fade-in-up" style={{ animationFillMode: "forwards" }}>
               Профессиональная мебель
             </p>
-            <h1
-              className="font-cormorant text-6xl md:text-8xl text-white font-light leading-[0.9] mb-8 animate-fade-in-up delay-100"
-              style={{ animationFillMode: "forwards" }}
-            >
+            <h1 className="font-cormorant text-6xl md:text-8xl text-white font-light leading-[0.9] mb-8 animate-fade-in-up delay-100" style={{ animationFillMode: "forwards" }}>
               Столы и стулья <br />
               <em className="italic text-[hsl(var(--gold))]">премиум-класса</em>
             </h1>
-            <p
-              className="font-ibm text-white/70 text-sm leading-relaxed mb-10 max-w-md animate-fade-in-up delay-200"
-              style={{ animationFillMode: "forwards" }}
-            >
+            <p className="font-ibm text-white/70 text-sm leading-relaxed mb-10 max-w-md animate-fade-in-up delay-200" style={{ animationFillMode: "forwards" }}>
               Более 5 лет поставляем качественную мебель для офисов, переговорных залов, представительских кабинетов и частных домов по всей России.
             </p>
-            <div
-              className="flex flex-wrap gap-4 animate-fade-in-up delay-300"
-              style={{ animationFillMode: "forwards" }}
-            >
+            <div className="flex flex-wrap gap-4 animate-fade-in-up delay-300" style={{ animationFillMode: "forwards" }}>
               <button className="gold-btn" onClick={() => handleNav("catalog")}>
                 Смотреть каталог
               </button>
@@ -248,19 +415,12 @@ export default function Index() {
             </p>
           </div>
 
-          {/* Filters */}
           <div className="bg-white p-6 mb-10 border border-border space-y-5">
             <div>
               <p className="font-ibm text-xs tracking-widest uppercase text-[hsl(var(--muted-foreground))] mb-3">Категория</p>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((c) => (
-                  <button
-                    key={c}
-                    className={`filter-chip ${category === c ? "active" : ""}`}
-                    onClick={() => setCategory(c)}
-                  >
-                    {c}
-                  </button>
+                  <button key={c} className={`filter-chip ${category === c ? "active" : ""}`} onClick={() => setCategory(c)}>{c}</button>
                 ))}
               </div>
             </div>
@@ -270,43 +430,23 @@ export default function Index() {
                 <p className="font-ibm text-xs tracking-widest uppercase text-[hsl(var(--muted-foreground))] mb-3">Материал</p>
                 <div className="flex flex-wrap gap-2">
                   {MATERIALS.map((m) => (
-                    <button
-                      key={m}
-                      className={`filter-chip ${material === m ? "active" : ""}`}
-                      onClick={() => setMaterial(m)}
-                    >
-                      {m}
-                    </button>
+                    <button key={m} className={`filter-chip ${material === m ? "active" : ""}`} onClick={() => setMaterial(m)}>{m}</button>
                   ))}
                 </div>
               </div>
-
               <div>
                 <p className="font-ibm text-xs tracking-widest uppercase text-[hsl(var(--muted-foreground))] mb-3">Стиль</p>
                 <div className="flex flex-wrap gap-2">
                   {STYLES.map((s) => (
-                    <button
-                      key={s}
-                      className={`filter-chip ${style === s ? "active" : ""}`}
-                      onClick={() => setStyle(s)}
-                    >
-                      {s}
-                    </button>
+                    <button key={s} className={`filter-chip ${style === s ? "active" : ""}`} onClick={() => setStyle(s)}>{s}</button>
                   ))}
                 </div>
               </div>
-
               <div>
                 <p className="font-ibm text-xs tracking-widest uppercase text-[hsl(var(--muted-foreground))] mb-3">Цена</p>
                 <div className="flex flex-wrap gap-2">
                   {PRICE_RANGES.map((pr, idx) => (
-                    <button
-                      key={pr.label}
-                      className={`filter-chip ${priceIdx === idx ? "active" : ""}`}
-                      onClick={() => setPriceIdx(idx)}
-                    >
-                      {pr.label}
-                    </button>
+                    <button key={pr.label} className={`filter-chip ${priceIdx === idx ? "active" : ""}`} onClick={() => setPriceIdx(idx)}>{pr.label}</button>
                   ))}
                 </div>
               </div>
@@ -315,7 +455,7 @@ export default function Index() {
 
           <div className="flex items-center justify-between mb-8">
             <p className="font-ibm text-xs text-[hsl(var(--muted-foreground))] tracking-wider uppercase">
-              Найдено: {filtered.length} товаров
+              {loadingCatalog ? "Загружаем..." : `Найдено: ${filtered.length} товаров`}
             </p>
             <button
               className="font-ibm text-xs tracking-wider text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))] transition-colors flex items-center gap-2"
@@ -326,26 +466,31 @@ export default function Index() {
             </button>
           </div>
 
-          {filtered.length === 0 ? (
+          {loadingCatalog ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="border border-border">
+                  <div className="bg-gray-100 animate-pulse" style={{ aspectRatio: "4/3" }} />
+                  <div className="p-5 space-y-3">
+                    <div className="h-3 bg-gray-100 animate-pulse rounded w-1/2" />
+                    <div className="h-5 bg-gray-100 animate-pulse rounded w-3/4" />
+                    <div className="h-4 bg-gray-100 animate-pulse rounded w-1/3" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="py-24 text-center">
               <Icon name="PackageSearch" size={48} className="mx-auto text-[hsl(var(--muted-foreground))] mb-4" />
-              <p className="font-cormorant text-3xl text-[hsl(var(--muted-foreground))]">
-                Товары не найдены
-              </p>
-              <p className="font-ibm text-sm text-[hsl(var(--muted-foreground))] mt-2">
-                Попробуйте изменить параметры фильтрации
-              </p>
+              <p className="font-cormorant text-3xl text-[hsl(var(--muted-foreground))]">Товары не найдены</p>
+              <p className="font-ibm text-sm text-[hsl(var(--muted-foreground))] mt-2">Попробуйте изменить параметры фильтрации</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map((product) => (
                 <div key={product.id} className="product-card border border-border">
                   <div className="product-image relative overflow-hidden" style={{ aspectRatio: "4/3" }}>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                     {product.tag && (
                       <span className="absolute top-3 left-3 bg-[hsl(var(--gold))] text-white font-ibm text-xs tracking-wider px-3 py-1">
                         {product.tag}
@@ -354,24 +499,30 @@ export default function Index() {
                   </div>
                   <div className="p-5">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
-                        {product.category}
-                      </span>
+                      <span className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))]">{product.category}</span>
                       <span className="text-[hsl(var(--border))]">·</span>
-                      <span className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))]">
-                        {product.material}
-                      </span>
+                      <span className="font-ibm text-[10px] tracking-widests uppercase text-[hsl(var(--muted-foreground))]">{product.material}</span>
                     </div>
-                    <h3 className="font-cormorant text-xl font-semibold text-[hsl(var(--charcoal))] mb-3 leading-tight">
-                      {product.name}
-                    </h3>
+                    <h3 className="font-cormorant text-xl font-semibold text-[hsl(var(--charcoal))] mb-3 leading-tight">{product.name}</h3>
                     <div className="flex items-center justify-between">
                       <span className="font-cormorant text-2xl font-semibold text-[hsl(var(--charcoal))]">
                         {product.price.toLocaleString("ru-RU")} ₽
                       </span>
-                      <button className="gold-btn !py-2 !px-5 !text-xs">
-                        Заказать
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          className="outline-btn !py-2 !px-3 !text-xs"
+                          onClick={() => addToCart(product)}
+                          title="В корзину"
+                        >
+                          <Icon name="ShoppingCart" size={14} />
+                        </button>
+                        <button
+                          className="gold-btn !py-2 !px-4 !text-xs"
+                          onClick={() => { setFormSuccess(false); setFormError(""); openOrderModal(product); }}
+                        >
+                          Заказать
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -423,11 +574,7 @@ export default function Index() {
 
             <div className="relative">
               <div className="overflow-hidden" style={{ aspectRatio: "3/4" }}>
-                <img
-                  src={DESK_IMG}
-                  alt="О компании"
-                  className="w-full h-full object-cover"
-                />
+                <img src={DESK_IMG} alt="О компании" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -bottom-6 -left-6 bg-[hsl(var(--gold))] p-6 hidden md:block">
                 <div className="font-cormorant text-4xl text-white font-bold">5+</div>
@@ -472,44 +619,59 @@ export default function Index() {
 
             <div className="bg-white border border-border p-8">
               <h3 className="font-cormorant text-2xl text-[hsl(var(--charcoal))] mb-6">Оставить заявку</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">
-                    Имя *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ваше имя"
-                    className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
-                  />
+
+              {formSuccess ? (
+                <div className="py-8 text-center">
+                  <Icon name="CheckCircle" size={48} className="mx-auto text-green-600 mb-4" />
+                  <p className="font-cormorant text-2xl text-[hsl(var(--charcoal))] mb-2">Заявка отправлена!</p>
+                  <p className="font-ibm text-sm text-[hsl(var(--muted-foreground))]">Мы свяжемся с вами в течение 30 минут в рабочее время.</p>
+                  <button className="gold-btn mt-6" onClick={() => setFormSuccess(false)}>Отправить ещё</button>
                 </div>
-                <div>
-                  <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">
-                    Телефон *
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+7 (___) ___-__-__"
-                    className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
-                  />
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">Имя *</label>
+                    <input
+                      type="text"
+                      placeholder="Ваше имя"
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">Телефон *</label>
+                    <input
+                      type="tel"
+                      placeholder="+7 (___) ___-__-__"
+                      value={formPhone}
+                      onChange={(e) => setFormPhone(e.target.value)}
+                      className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">Комментарий</label>
+                    <textarea
+                      rows={4}
+                      placeholder="Расскажите о вашем запросе..."
+                      value={formComment}
+                      onChange={(e) => setFormComment(e.target.value)}
+                      className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors resize-none"
+                    />
+                  </div>
+                  {formError && <p className="font-ibm text-xs text-red-500">{formError}</p>}
+                  <button
+                    className="gold-btn w-full disabled:opacity-60"
+                    disabled={formSending}
+                    onClick={() => sendOrder([])}
+                  >
+                    {formSending ? "Отправляем..." : "Отправить заявку"}
+                  </button>
+                  <p className="font-ibm text-[10px] text-[hsl(var(--muted-foreground))] text-center leading-relaxed">
+                    Нажимая «Отправить», вы соглашаетесь с политикой обработки персональных данных
+                  </p>
                 </div>
-                <div>
-                  <label className="font-ibm text-[10px] tracking-widest uppercase text-[hsl(var(--muted-foreground))] block mb-2">
-                    Комментарий
-                  </label>
-                  <textarea
-                    rows={4}
-                    placeholder="Расскажите о вашем запросе..."
-                    className="w-full border border-border px-4 py-3 font-ibm text-sm focus:outline-none focus:border-[hsl(var(--charcoal))] transition-colors resize-none"
-                  />
-                </div>
-                <button className="gold-btn w-full">
-                  Отправить заявку
-                </button>
-                <p className="font-ibm text-[10px] text-[hsl(var(--muted-foreground))] text-center leading-relaxed">
-                  Нажимая «Отправить», вы соглашаетесь с политикой обработки персональных данных
-                </p>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -527,11 +689,7 @@ export default function Index() {
 
           <nav className="flex gap-6">
             {NAV_LINKS.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => handleNav(link.id)}
-                className="font-ibm text-[10px] tracking-widest uppercase text-white/40 hover:text-white/80 transition-colors"
-              >
+              <button key={link.id} onClick={() => handleNav(link.id)} className="font-ibm text-[10px] tracking-widest uppercase text-white/40 hover:text-white/80 transition-colors">
                 {link.label}
               </button>
             ))}
